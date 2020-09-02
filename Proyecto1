@@ -1,3 +1,12 @@
+from Ayudas import ObtenerNumeroPacientes, PacienteTiene
+
+##Diagnóstico preventivo
+
+#Daniela Jiménez
+#1 de Septiembre de 2020
+
+#Obtiene el nombre y síntomas que presenta un paciente para determinar si es un posible portador de COVID-19
+
 no_pacientes = ObtenerNumeroPacientes()
 
 def Diagnostico(tos, fiebre, dolor_cabeza, dolor_garganta,
