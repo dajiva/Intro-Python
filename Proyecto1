@@ -1,0 +1,46 @@
+no_pacientes = ObtenerNumeroPacientes()
+
+def Diagnostico(tos, fiebre, dolor_cabeza, dolor_garganta,
+                ojos_rojos, malestar_general, dificultad_respirar):
+    
+    sintomas_leves= False
+    sintomas_comunes= False
+    
+    if tos or fiebre or dolor_cabeza:
+        sintomas_comunes= True
+    if dolor_garganta or ojos_rojos or malestar_general:
+        sintomas_leves= True
+    
+    if dificultad_respirar:
+        print(nombre_pila + ", tienes sítomas de graves de COVID-19. Acude inmediatamente a tu unidad de salud más cercana")
+    elif sintomas_comunes and sintomas_leves:
+        print(nombre_pila + ", es probable que tengas COVID-19. Es necesario realizar una prueba PCR para confirmar el diagnóstico")
+    else:
+        print(nombre_pila + ", tienes pocos o nulos síntomas de COVID-19, por lo que es poco probable que tengas la enfermedad. Sin embargo, es necesario mantener las precauciones y no reducir los cuidados")
+        
+    
+
+for i in range(1,no_pacientes+1):
+    print("Paciente " + str(i))
+    nombre= input("Nombre completo: ")
+    nombre= nombre.split(" ")
+
+    nombre_pila= ""
+    for n in nombre[:-2]:
+        nombre_pila+= n + " "
+    
+    print(nombre_pila + ", responde con un 1 si presentas el síntoma, de lo contrario responde con un 0 \n Presentas")
+    print 
+
+    tos= PacienteTiene("Tos")
+    fiebre= PacienteTiene("Fiebre")
+    dolor_cabeza= PacienteTiene("Dolor de cabeza")
+    dolor_garganta= PacienteTiene("Dolor o ardor de garganta")
+    ojos_rojos= PacienteTiene("Ojos rojos")
+    malestar_general= PacienteTiene("Malestar general")
+    dificultad_respirar= PacienteTiene("Dificultad para respirar")
+    print
+
+    Diagnostico(tos, fiebre, dolor_cabeza, dolor_garganta,
+                ojos_rojos, malestar_general, dificultad_respirar)
+    print
