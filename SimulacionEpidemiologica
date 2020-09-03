@@ -1,0 +1,83 @@
+## Simulación epidemiológica
+# Daniela Jiménez Vargas
+
+from Ayudas import ObtenerNumeroEntero, ObtenerNumeroFlotante
+
+import random as rn
+import numpy as np
+
+# Simular un día
+def PasoSimulacion(personas, beta, gamma): 
+    temp[:] = personas
+    for i in range(fil): 
+        for j in range(col):
+            if temp[i][j] == 0:
+                personas[i][j]= TestBeta(beta,temp,i,j)
+            elif temp[i][j] == 1:
+                personas[i][j]= TestGamma(gamma)
+    return personas
+                       
+
+def TestBeta(beta,temp,i,j):
+    prob = 0
+    infectado = 0
+    for x in [-1,0,1]:
+        for y in [-1,0,1]:
+            if 0 <= i+x <= fil-1 and 0 <= j+y <= col-1:
+                if temp[x+i][y+j] == 1:
+                    prob = 1
+                    break
+    
+    if prob == 1 and rn.random() < beta:
+        infectado = 1
+    else:
+        infectado = 0
+    return infectado
+                       
+def TestGamma(gamma):
+    if rn.random() < gamma:
+        recuperado = 2
+    else:
+        recuperado= 1
+    return recuperado
+                       
+            
+# Distribución de los casos iniciales
+def CasosIniciales(iniciales):
+    global personas
+    global dimension
+    p = 0
+    while p < iniciales:
+        pos= np.random.randint(dimension, size= (1,2))
+        i= pos[0][0] 
+        j= pos[0][1]
+        if personas[i][j]== 0:
+            personas[i][j]= 1
+            p += 1
+    return personas
+
+dimension = ObtenerNumeroEntero(pregunta='Ingrese el número de personas en la simulación (Se tomará floor(sqrt)): ')
+print("\n")
+dimension = int(np.sqrt(dimension))
+dimensiones = (dimension, dimension)
+personas = np.zeros(dimensiones)
+
+fil= len(personas)
+col= len(personas[0])
+                       
+iniciales = ObtenerNumeroEntero(pregunta='Ingrese el número de contagiados inicial: ')
+
+beta = ObtenerNumeroFlotante(min=0, max=1, pregunta='\n Valor beta (probabilidad de que un suceptible se contagie): ')
+gamma = ObtenerNumeroFlotante(min=0, max=1, pregunta='\n Valor gamma (probabilidad de que un infectado se recupere o muera): ') ##entre 0 y 1
+
+personas= CasosIniciales(iniciales)
+temp = np.zeros_like(personas)
+print("\n Día 0: \n" + str(personas) + "\n")
+
+dia = 1
+while sum(sum(personas == 1)) != 0:
+    print("Día " + str(dia) + ": \n" + str(PasoSimulacion(personas, beta, gamma)) + "\n")
+    dia +=1
+print("Fin de la simulación en el día " + str(dia-1))
+print(str(sum(sum(personas == 0))) + " suceptibles")
+print(str(sum(sum(personas == 2))) + " removidos")
