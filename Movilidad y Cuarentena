@@ -22,10 +22,7 @@ movilidad = movilidad[movilidad['country_region_code'] == 'MX']
 indice = pd.Index(range(len(movilidad_cuarentena)))
 
 # Unir datos de covid en Mexico
-confirmados.set_index(["cve_ent","nombre"], inplace = True) # Establecer a los estados como ínidces
-confirmados = confirmados.drop(['poblacion', '29-01-2020', '30-01-2020','31-01-2020','01-02-2020',...
-                               '02-02-2020' '03-02-2020','04-02-2020', '05-02-2020', '06-02-2020'...
-                               '07-02-2020' ], axis = 1) # Eliminar columna poblacion y fechas que no coinciden
+confirmados.set_index(["cve_ent","nombre"])
 confirmados = confirmados.iloc[:,:-4] # Eliminar 5 días que no están en movilidad
 confirmados = confirmados.stack() # Transponer datos
 confirmados = confirmados.to_frame() # Convertir a data frame
