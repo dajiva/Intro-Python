@@ -1,0 +1,64 @@
+# Movilidad y Cuarentena
+# Daniela Jiménez Vargas
+# 8 de Septiembre de 2020
+# Este programa crea un data frame llamado covid que reúne
+# los datos de casos confirmados, defunciones, casos negativos y sospechosos, por estado, del COVID-19 en México
+
+import pandas as pd
+
+# Importar y nombrar data frames
+confirmados = pd.read_csv("Confirmados.csv")
+defunciones = pd.read_csv("Defunciones.csv")
+movilidad = pd.read_csv("GoogleMobility.csv", low_memory = False)
+negativos = pd.read_csv("Negativos.csv")
+sospechosos = pd.read_csv("Sospechosos.csv")
+
+estados_df = confirmados['nombre']
+
+# Seleccionar solo los datos correspondientes a Mexico
+movilidad = movilidad[movilidad['country_region_code'] == 'MX'] 
+
+# Definir índice
+indice = pd.Index(range(len(movilidad_cuarentena)))
+
+# Unir datos de covid en Mexico
+confirmados.set_index(["cve_ent","nombre"], inplace = True) # Establecer a los estados como ínidces
+confirmados = confirmados.drop(['poblacion', '29-01-2020', '30-01-2020','31-01-2020','01-02-2020',...
+                               '02-02-2020' '03-02-2020','04-02-2020', '05-02-2020', '06-02-2020'...
+                               '07-02-2020' ], axis = 1) # Eliminar columna poblacion y fechas que no coinciden
+confirmados = confirmados.iloc[:,:-4] # Eliminar 5 días que no están en movilidad
+confirmados = confirmados.stack() # Transponer datos
+confirmados = confirmados.to_frame() # Convertir a data frame
+confirmados.rename_axis(index={None : 'Fecha'},inplace=True) # Poner nombre a columna
+confirmados.name = 'Confirmados'
+
+sospechosos.set_index(["cve_ent","nombre"], inplace = True)
+sospechosos = sospechosos.drop(['poblacion'], axis = 1)
+sospechosos = sospechosos.iloc[:,:-4]
+sospechosos = sospechosos.stack()
+sospechosos = sospechosos.to_frame()
+sospechosos.rename_axis(index={None : 'Fecha'},inplace=True)
+sospechosos.name = 'Sospechosos'
+
+negativos.set_index(["cve_ent","nombre"], inplace = True)
+negativos = negativos.drop(['poblacion'], axis = 1)
+negativos = negativos.iloc[:,:-4]
+negativos = negativos.stack()
+negativos = negativos.to_frame()
+negativos.rename_axis(index={None : 'Fecha'},inplace=True)
+negativos.name = 'Negativos'
+
+defunciones.set_index(["cve_ent","nombre"], inplace = True)
+defunciones = defunciones.drop(['poblacion'], axis = 1)
+defunciones = defunciones.iloc[:,:-4]
+defunciones = defunciones.stack()
+defunciones = defunciones.to_frame()
+defunciones.rename_axis(index={None : 'Fecha'},inplace=True)
+defunciones.name = 'Defunciones'
+
+group1 = pd.merge(confirmados, sospechosos, on = ["cve_ent","nombre","Fecha"])
+group1.rename(columns={'0_x' : 'Confirmados', '0_y': 'Sospechosos' },inplace=True)
+group2 = pd.merge(negativos, defunciones, how = 'left', on = ["cve_ent","nombre","Fecha"])
+group2.rename(columns={'0_x' : 'Negativos', '0_y': 'Defunciones' },inplace=True)
+
+covid = pd.merge(group1, group2, how= 'left', on = ["cve_ent","nombre","Fecha"]) # Crear data frame unificado
