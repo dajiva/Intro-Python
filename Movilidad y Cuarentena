@@ -1,8 +1,9 @@
 # Movilidad y Cuarentena
 # Daniela Jiménez Vargas
 # 8 de Septiembre de 2020
-# Este programa crea un data frame llamado covid que reúne
-# los datos de casos confirmados, defunciones, casos negativos y sospechosos, por estado, del COVID-19 en México
+# Este programa crea un data frame llamado movilidad_cuarentena que reúne
+# los datos de casos confirmados, defunciones, casos negativos y sospechosos, por estado, del COVID-19 en México,
+# junto con los datos de los cambios en la movilidad por categoría
 
 import pandas as pd
 
@@ -18,19 +19,26 @@ estados_df = confirmados['nombre']
 # Seleccionar solo los datos correspondientes a Mexico
 movilidad = movilidad[movilidad['country_region_code'] == 'MX'] 
 
-# Definir índice
-indice = pd.Index(range(len(movilidad_cuarentena)))
-
 # Unir datos de covid en Mexico
-confirmados.set_index(["cve_ent","nombre"])
+confirmados.set_index(["cve_ent","nombre"], inplace = True) # Establecer a los estados como ínidces
+confirmados = confirmados.drop(['poblacion'], axis = 1) # Eliminar columna poblacion 
 confirmados = confirmados.iloc[:,:-4] # Eliminar 5 días que no están en movilidad
 confirmados = confirmados.stack() # Transponer datos
 confirmados = confirmados.to_frame() # Convertir a data frame
 confirmados.rename_axis(index={None : 'Fecha'},inplace=True) # Poner nombre a columna
 confirmados.name = 'Confirmados'
 
+fechas = ['29-01-2020','30-01-2020','31-01-2020']
+for i in range(1,15):
+    if i < 10:
+        febrero = "0" + str(i) + "-02-2020"
+    else:
+        febrero =  str(i) + "-02-2020"
+    fechas.append(febrero)
+    
 sospechosos.set_index(["cve_ent","nombre"], inplace = True)
 sospechosos = sospechosos.drop(['poblacion'], axis = 1)
+sospechosos = sospechosos.drop(list(fechas), axis = 1)
 sospechosos = sospechosos.iloc[:,:-4]
 sospechosos = sospechosos.stack()
 sospechosos = sospechosos.to_frame()
@@ -55,7 +63,39 @@ defunciones.name = 'Defunciones'
 
 group1 = pd.merge(confirmados, sospechosos, on = ["cve_ent","nombre","Fecha"])
 group1.rename(columns={'0_x' : 'Confirmados', '0_y': 'Sospechosos' },inplace=True)
-group2 = pd.merge(negativos, defunciones, how = 'left', on = ["cve_ent","nombre","Fecha"])
+group2 = pd.merge(negativos, defunciones, how = 'left', on = ["cve_ent","nombre","Fecha"]) # Se le da prioridad a las fechas de negativos
 group2.rename(columns={'0_x' : 'Negativos', '0_y': 'Defunciones' },inplace=True)
 
 covid = pd.merge(group1, group2, how= 'left', on = ["cve_ent","nombre","Fecha"]) # Crear data frame unificado
+
+#Obtener el número de días
+dias = int(len(covid)/33)
+
+# Limpiar data frame covid
+covid = covid[:-dias] # Eliminar datos nacionales
+covid = covid.fillna(0) # Reemplazar los nan
+covid.rename_axis(index={'nombre' : 'Estado'},inplace=True) # Cambiar nombre a Estado
+covid = covid.reset_index() # Usar indice estándar
+covid = covid.drop(['cve_ent'], axis = 1) # Eliminar columna de clave de estado
+
+#Limpiar dataframe movilidad
+
+# Eliminar columnas
+movilidad = movilidad.iloc[:,8:]
+
+# Renombrar columnas
+rename = {'retail_and_recreation_percent_change_from_baseline': 'Tiendas y ocio','grocery_and_pharmacy_percent_change_from_baseline': 'Supermercados y farmacias','parks_percent_change_from_baseline': 'Parques','transit_stations_percent_change_from_baseline': 'Estaciones de transporte','workplaces_percent_change_from_baseline': 'Oficinas' ,'residential_percent_change_from_baseline' : 'Hogares'}
+movilidad.rename(columns= rename ,inplace=True)
+
+
+# Eliminar datos nacionales
+movilidad = movilidad.iloc[191:]
+
+# Estandarizar índice
+movilidad = movilidad.reset_index()
+movilidad = movilidad.drop(['index'], axis = 1)
+
+# Juntar ambos data frames
+movilidad_cuarentena = covid.join(movilidad)
+
+covid.join(movilidad)
